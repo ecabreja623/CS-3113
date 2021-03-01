@@ -129,32 +129,18 @@ void Update() {
     bmwMatrix = glm::mat4(1.0f);
     bmwMatrix = glm::translate(bmwMatrix, glm::vec3(bmw_x, bmw_y, 0.0f));
 
-
-    
-    if (porsche_y > -2.0f) {
-        porsche_y += -1.0f * deltaTime;
-        porscheMatrix = glm::mat4(1.0f);
-        porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x, porsche_y, 0.0f));
-    }
-    else if (porsche_x < 2) {
+    while (porsche_x < 100) {
         porsche_x += 1.0f * deltaTime;
-        porscheMatrix = glm::mat4(1.0f);
-        porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x,porsche_y, 0.0f));
-    }
-    else if (porsche_y < 0) {
-        porsche_y += 1.0f * deltaTime;
-        porscheMatrix = glm::mat4(1.0f);
-        porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x, porsche_y, 0.0f));
-    }
-    else if (porsche_x > 2) {
-        porsche_x += -1.0f * deltaTime;
-        porscheMatrix = glm::mat4(1.0f);
-        porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x, porsche_y, 0.0f));
-    }
-    //porsche_size += 1.0f * deltaTime;
 
+
+    }
     
-    
+    porsche_rotate = 90.f;
+
+    porscheMatrix = glm::mat4(1.0f);
+    porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x, porsche_y, 0.0f));
+    porscheMatrix = glm::rotate(porscheMatrix, glm::radians(porsche_rotate), glm::vec3(0.0f, 0.0f, 1.0f));
+    porscheMatrix = glm::translate(porscheMatrix, glm::vec3(porsche_x, porsche_y, 0.0f));
 }
 
 void DrawCar(glm::mat4 matrix, GLuint textureID) {
