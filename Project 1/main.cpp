@@ -13,6 +13,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"              //allows you to load an image into a texture
+#include <vector>
 
 SDL_Window* displayWindow;
 bool gameIsRunning = true;
@@ -41,6 +42,8 @@ float porsche_size = 0;
 
 GLuint porscheTextureID;
 
+GLuint fontTextureID;
+
 GLuint LoadTexture(const char* filePath) {      // loads texture
     int w, h, n;
     unsigned char* image = stbi_load(filePath, &w, &h, &n, STBI_rgb_alpha); // takes image from filepath
@@ -56,6 +59,49 @@ GLuint LoadTexture(const char* filePath) {      // loads texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     stbi_image_free(image);
     return textureID;
+}
+
+void DrawText(ShaderProgram* program, GLuint fontTextureID, std::string text,
+    float size, float spacing, glm::vec3 position)
+{
+    float width = 1.0f / 16.0f;
+    float height = 1.0f / 16.0f;
+    std::vector<float> vertices;
+    std::vector<float> texCoords;
+    for (int i = 0; i < text.size(); i++) {
+        int index = (int)text[i];
+        float offset = (size + spacing) * i;
+        float u = (float)(index % 16) / 16.0f;
+        float v = (float)(index / 16) / 16.0f;
+        vertices.insert(vertices.end(), {
+offset + (-0.5f * size), 0.5f * size,
+offset + (-0.5f * size), -0.5f * size,
+offset + (0.5f * size), 0.5f * size,
+offset + (0.5f * size), -0.5f * size,
+offset + (0.5f * size), 0.5f * size,
+offset + (-0.5f * size), -0.5f * size,
+            });
+        texCoords.insert(texCoords.end(), {
+        u, v,
+        u, v + height,
+        u + width, v,
+        u + width, v + height,
+        u + width, v,
+        u, v + height,
+            });
+    } // end of for loop
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::translate(modelMatrix, position);
+    program->SetModelMatrix(modelMatrix);
+    glUseProgram(program->programID);
+    glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertices.data());
+    glEnableVertexAttribArray(program->positionAttribute);
+    glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords.data());
+    glEnableVertexAttribArray(program->texCoordAttribute);
+    glBindTexture(GL_TEXTURE_2D, fontTextureID);
+    glDrawArrays(GL_TRIANGLES, 0, (int)(text.size() * 6));
+    glDisableVertexAttribArray(program->positionAttribute);
+    glDisableVertexAttribArray(program->texCoordAttribute);
 }
 
 void Initialize() {
@@ -93,6 +139,7 @@ void Initialize() {
     gtrTextureID = LoadTexture("r34gtr.png");    // loads the image onto video card
     bmwTextureID = LoadTexture("e36bmw.png");
     porscheTextureID = LoadTexture("porsche911.png");
+    fontTextureID = LoadTexture("pixel_font.png");
 }
 
 void ProcessInput() {
@@ -152,6 +199,8 @@ void DrawCar(glm::mat4 matrix, GLuint textureID) {
 void Render() {
     glClear(GL_COLOR_BUFFER_BIT);
     
+    DrawText(&program, fontTextureID, "TESTING", 0.3f, 0.1f, glm::vec3(0));
+
     float vertices[] = { -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5 };
     float texCoords[] = { 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0 };
     glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
