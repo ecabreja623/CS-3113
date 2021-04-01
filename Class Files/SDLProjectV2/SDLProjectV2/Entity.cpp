@@ -12,12 +12,16 @@ Entity::Entity()
 }
 
 bool Entity::CheckCollision(Entity* other) {
+    if (other == this) return false;
+
     if (isActive == false || other->isActive == false) return false;
 
     float xdist = fabs(position.x - other->position.x) - ((width + other->width) / 2.0f);
     float ydist = fabs(position.y - other->position.y) - ((height + other->height) / 2.0f);
 
-    if (xdist < 0 && ydist < 0) return true;
+    if (xdist < 0 && ydist < 0) {
+        return true;
+    }
 
     return false;
 }
@@ -69,7 +73,45 @@ void Entity::CheckCollisionsX(Entity* objects, int objectCount)
     }
 }
 
-void Entity::Update(float deltaTime, Entity* platforms, int platformCount)
+void Entity::AI(Entity* player) {
+    switch (aiType) {
+    case WALKER:
+        AIWalker();
+        break;
+
+    case WAITANDGO:
+        AIWaitAndGo(player);
+        break;
+    }
+}
+
+void Entity::AIWalker() {
+    movement = glm::vec3(-1, 0, 0);
+}
+
+void Entity::AIWaitAndGo(Entity* player) {
+    switch (aiState) {
+    case IDLE:
+        if (glm::distance(position.x, player->position.x) < 3.0f) {
+            aiState = WALKING;
+        }
+        break;
+
+    case WALKING:
+        if (player->position.x < position.x) {
+            movement = glm::vec3(-1, 0, 0);
+        }
+        else {
+            movement = glm::vec3(1, 0, 0);
+        }
+        break;
+
+    case ATTACKING:
+        break;
+    }
+}
+
+void Entity::Update(float deltaTime, Entity* player, Entity* platforms, int platformCount)
 {
     if (isActive == false) return;
 
@@ -77,6 +119,10 @@ void Entity::Update(float deltaTime, Entity* platforms, int platformCount)
     collidedBottom = false;
     collidedLeft = false;
     collidedRight = false;
+
+    if (entityType == ENEMY) {
+        AI(player);
+    }
 
     if (animIndices != NULL) {
         if (glm::length(movement) != 0) {
@@ -193,3 +239,4 @@ void Entity::Render(ShaderProgram* program) {
     glDisableVertexAttribArray(program->positionAttribute);
     glDisableVertexAttribArray(program->texCoordAttribute);
 }
+

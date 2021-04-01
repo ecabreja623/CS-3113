@@ -18,6 +18,7 @@
 #include <vector>
 #include <random>
 #include <cstdlib>
+#include <SDL_mixer.h>
 #define PADDLE_COUNT 2
 
 struct GameState {
@@ -36,6 +37,9 @@ ShaderProgram program;
 glm::mat4 viewMatrix, modelMatrix, projectionMatrix;
 
 GLuint fontTextureID;
+
+Mix_Music* music;
+Mix_Chunk* bounce;
 
 GLuint LoadTexture(const char* filePath) {
     int w, h, n;
@@ -101,7 +105,7 @@ void DrawText(ShaderProgram* program, GLuint fontTextureID, std::string text, fl
 }
 
 void Initialize() {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     displayWindow = SDL_CreateWindow("Pong!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
     SDL_GLContext context = SDL_GL_CreateContext(displayWindow);
     SDL_GL_MakeCurrent(displayWindow, context);
@@ -113,6 +117,13 @@ void Initialize() {
     glViewport(0, 0, 640, 480);
 
     program.Load("shaders/vertex_textured.glsl", "shaders/fragment_textured.glsl");
+
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+    music = Mix_LoadMUS("dooblydoo.mp3");
+    Mix_PlayMusic(music, -1);
+    Mix_VolumeMusic(MIX_MAX_VOLUME / 4);
+
+    bounce = Mix_LoadWAV("bounce.wav");
 
     viewMatrix = glm::mat4(1.0f);
     modelMatrix = glm::mat4(1.0f);
@@ -217,8 +228,6 @@ void Update() {
     lastTicks = ticks;
 
     if (!gameIsOver) {
-
-
         float paddle1x, paddle2x, paddle1y, paddle2y;
 
         for (int i = 0; i < PADDLE_COUNT; i++) {
@@ -236,17 +245,21 @@ void Update() {
         // bounce off screen if ball hits top or bottom
         if (state.ball->position.y >= 3.25f) {
             state.ball->movement.y = -1.0f;
+            Mix_PlayChannel(-1, bounce, 0); // play bounce sound effect
         }
         else if (state.ball->position.y <= -3.25f) {
             state.ball->movement.y = 1.0f;
+            Mix_PlayChannel(-1, bounce, 0);
         }
 
         // check collision w paddle 1
         if (((fabs(paddle1x - state.ball->position.x) - 1) < 0) && ((fabs(paddle1y - state.ball->position.y) - 1) < 0)) {
             state.ball->movement.x = 1.0f;
+            Mix_PlayChannel(-1, bounce, 0);
         }
         else if (((fabs(paddle2x - state.ball->position.x) - 1) < 0) && ((fabs(paddle2y - state.ball->position.y) - 1) < 0)) {    // check collision w paddle 2
             state.ball->movement.x = -1.0f;
+            Mix_PlayChannel(-1, bounce, 0);
         }
 
         if (state.ball->position.x <= -4.5f) {    // check if game over, player 2 wins

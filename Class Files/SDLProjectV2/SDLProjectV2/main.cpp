@@ -7,6 +7,7 @@
 #define GL_GLEXT_PROTOTYPES 1
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <SDL_mixer.h>  // adds audio functions
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
@@ -16,11 +17,13 @@
 
 #include "Entity.h"
 
-#define PLATFORM_COUNT 5
+#define PLATFORM_COUNT 12
+#define ENEMY_COUNT 1
 
 struct GameState {
     Entity* player;
     Entity* platforms;
+    Entity* enemies;
 };
 
 GameState state;
@@ -30,6 +33,9 @@ bool gameIsRunning = true;
 
 ShaderProgram program;
 glm::mat4 viewMatrix, modelMatrix, projectionMatrix;
+
+Mix_Music* music;   // music, can only play one mp3 file at a time
+Mix_Chunk* sound_effect;    // sound effects, can have up to 16 in the mixer
 
 GLuint LoadTexture(const char* filePath) {
     int w, h, n;
@@ -54,7 +60,7 @@ GLuint LoadTexture(const char* filePath) {
 
 
 void Initialize() {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);  // initializes audio
     displayWindow = SDL_CreateWindow("Textured!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
     SDL_GLContext context = SDL_GL_CreateContext(displayWindow);
     SDL_GL_MakeCurrent(displayWindow, context);
@@ -66,6 +72,13 @@ void Initialize() {
     glViewport(0, 0, 640, 480);
 
     program.Load("shaders/vertex_textured.glsl", "shaders/fragment_textured.glsl");
+
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);  // cdq audio, 2 channels
+    music = Mix_LoadMUS("dooblydoo.mp3");   // load mp3 file similar to loading texture
+    Mix_PlayMusic(music, -1);               // play music, -1 means loop forever, 0 means play once, 1 means play twice
+    Mix_VolumeMusic(MIX_MAX_VOLUME / 4);    // sets music volume to 1/4 of max volume
+
+    sound_effect = Mix_LoadWAV("bounce.wav");   
 
     viewMatrix = glm::mat4(1.0f);
     modelMatrix = glm::mat4(1.0f);
@@ -86,12 +99,14 @@ void Initialize() {
 
     // Initialize Player
     state.player = new Entity();
-    state.player->position = glm::vec3(0);
+    state.player->entityType = PLAYER;
+    state.player->position = glm::vec3(-4, -1, 0);
     state.player->movement = glm::vec3(0);
     state.player->acceleration = glm::vec3(0, -9.81f, 0);   // gravity (Earth) always in effect
     state.player->speed = 1.75f;
-    state.player->textureID = LoadTexture("george_0.png");
+    state.player->textureID = LoadTexture("0_Golem_Idle.png");
 
+    /*
     state.player->animRight = new int[4]{ 3, 7, 11, 15 };
     state.player->animLeft = new int[4]{ 1, 5, 9, 13 };
     state.player->animUp = new int[4]{ 2, 6, 10, 14 };
@@ -103,8 +118,8 @@ void Initialize() {
     state.player->animTime = 0;
     state.player->animCols = 4;
     state.player->animRows = 4;
-
-    state.player->height = 0.8f;    // update height to make it not seem like its floating (depends on texture)
+    */
+    state.player->height = 0.725f;    // update height to make it not seem like its floating (depends on texture)
     state.player->width = 0.58f;    // update width so collisions are accuarte
 
     state.player->jumpPower = 5.0f;
@@ -113,25 +128,27 @@ void Initialize() {
 
     GLuint platformTextureID = LoadTexture("platformPack_tile001.png");
 
-    state.platforms[0].textureID = platformTextureID;
-    state.platforms[0].position = glm::vec3(-1.0f, -3.25f, 0.0f);
-
-    state.platforms[1].textureID = platformTextureID;
-    state.platforms[1].position = glm::vec3(0.0f, -3.25f, 0.0f);
-    //state.platforms[1].isActive = false;  // block will disappear
-
-    state.platforms[2].textureID = platformTextureID;
-    state.platforms[2].position = glm::vec3(1.0f, -3.25f, 0.0f);
-
-    state.platforms[3].textureID = platformTextureID;
-    state.platforms[3].position = glm::vec3(-3.0f, -3.25f, 0.0f);
-
-    state.platforms[4].textureID = platformTextureID;
-    state.platforms[4].position = glm::vec3(1.5f, -2.25f, 0.0f);
+    for (int i = 0; i < PLATFORM_COUNT; ++i) {
+        state.platforms[i].entityType = PLATFORM;
+        state.platforms[i].textureID = platformTextureID;
+        state.platforms[i].position = glm::vec3(-5.0f + i, -3.25f, 0.0f);
+    }
+    state.platforms[11].position = glm::vec3(0.0f, -2.25f, 0.0f);
 
     for (int i = 0; i < PLATFORM_COUNT; ++i) {
-        state.platforms[i].Update(0, NULL, 0);   // needs to update only once so they are drawn at the correct spot
+        state.platforms[i].Update(0, NULL, NULL, 0);   // needs to update only once so they are drawn at the correct spot
     }
+
+    state.enemies = new Entity[ENEMY_COUNT];
+
+    GLuint enemyTextureID = LoadTexture("ctg.png");
+
+    state.enemies[0].entityType = ENEMY;
+    state.enemies[0].textureID = enemyTextureID;
+    state.enemies[0].position = glm::vec3(4, -2.25, 0);
+    state.enemies[0].speed = 1;
+    state.enemies[0].aiType = WAITANDGO;
+    state.enemies[0].aiState = IDLE;
 }
 
 void ProcessInput() {
@@ -159,6 +176,8 @@ void ProcessInput() {
             case SDLK_SPACE:    // jump occurs after SPACE is pressed, does not need to be held down
                 if (state.player->collidedBottom) { // only jumps if touching the ground
                     state.player->jump = true;  // tells game a jump is pending
+
+                    Mix_PlayChannel(-1, sound_effect, 0); // play jump sound effect, -1 selects the first available channel, 0 plays sound once
                 }
                 break;
             }
@@ -177,11 +196,9 @@ void ProcessInput() {
         state.player->animIndices = state.player->animRight;
     }
 
-
     if (glm::length(state.player->movement) > 1.0f) {
         state.player->movement = glm::normalize(state.player->movement);
     }
-
 }
 
 #define FIXED_TIMESTEP 0.0166666f   // 60 fps, 1 frame every 0.1666 sec
@@ -200,7 +217,11 @@ void Update() {
     }
     while (deltaTime >= FIXED_TIMESTEP) {   // if delta time is slower, keep updating so we continue at same pace
         // Update. Notice it's FIXED_TIMESTEP. Not deltaTime
-        state.player->Update(FIXED_TIMESTEP, state.platforms, PLATFORM_COUNT);
+        state.player->Update(FIXED_TIMESTEP, state.player, state.platforms, PLATFORM_COUNT);
+
+        for (int i = 0; i < ENEMY_COUNT; ++i) {
+            state.enemies[i].Update(FIXED_TIMESTEP, state.player, state.platforms, PLATFORM_COUNT);
+        }
 
         deltaTime -= FIXED_TIMESTEP;
     }
@@ -213,6 +234,10 @@ void Render() {
 
     for (int i = 0; i < PLATFORM_COUNT; ++i) {
         state.platforms[i].Render(&program);
+    }
+
+    for (int i = 0; i < ENEMY_COUNT; ++i) {
+        state.enemies[i].Render(&program);
     }
 
     state.player->Render(&program);
