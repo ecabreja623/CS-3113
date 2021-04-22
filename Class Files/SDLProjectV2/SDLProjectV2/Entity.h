@@ -1,3 +1,4 @@
+#pragma once    // makes it so that it defines these only once
 #define GL_SILENCE_DEPRECATION
 
 #ifdef _WINDOWS
@@ -10,16 +11,21 @@
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
+#include "Map.h"
 
 enum EntityType {PLAYER, PLATFORM, ENEMY};
 enum AIType {WALKER, WAITANDGO};
 enum AIState {IDLE, WALKING, ATTACKING};
+enum AnimState { IDLEING, RUNNING, JUMPING, FALLING, SHOOTING, DYING };
+
 
 class Entity {
 public:
     EntityType entityType;
     AIType aiType;
     AIState aiState;
+
+    AnimState currentAnim = IDLEING;
 
     glm::vec3 position;
     glm::vec3 movement;
@@ -34,6 +40,7 @@ public:
     float jumpPower = 0;
 
     GLuint textureID;
+    std::vector<GLuint> textureList;
 
     glm::mat4 modelMatrix;
 
@@ -61,7 +68,11 @@ public:
     bool CheckCollision(Entity* other);
     void CheckCollisionsY(Entity* objects, int objectCount);
     void CheckCollisionsX(Entity* objects, int objectCount);
-    void Update(float deltaTime, Entity* player, Entity* platforms, int platformCount);
+    void CheckCollisionsX(Map* map);    // keep old check collisions to check for collision with AI / other objects
+    void CheckCollisionsY(Map* map);    // new functions handle collisions with map instead of platforms
+
+    //void Update(float deltaTime, Entity* player, Entity* platforms, int platformCount);
+    void Update(float deltaTime, Entity* player, Entity* objects, int objectCount, Map* map);
     void Render(ShaderProgram* program);
     void DrawSpriteFromTextureAtlas(ShaderProgram* program, GLuint textureID, int index);
 
