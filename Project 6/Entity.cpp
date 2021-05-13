@@ -40,6 +40,8 @@ void Entity::buildCar(std::vector<Mesh*>& meshes, std::vector<GLuint>& textures,
         mesh = meshes[0];
         textureID = textures[texture_index];
         scale = glm::vec3(0.5f, 0.5f, 0.5f);    // FOCUS has a different size to the other two
+        width = 1.5;
+        depth = 4.5;
         speed = 20.0f;
     }
     else if (mesh_index == 1) {
@@ -47,6 +49,8 @@ void Entity::buildCar(std::vector<Mesh*>& meshes, std::vector<GLuint>& textures,
         mesh = meshes[1];
         textureID = textures[texture_index];
         scale = glm::vec3(0.01f, 0.01f, 0.01f);
+        width = 1.25;
+        depth = 4;
         speed = 22.0f;  // each car has a different speed
     }
     else {
@@ -54,6 +58,8 @@ void Entity::buildCar(std::vector<Mesh*>& meshes, std::vector<GLuint>& textures,
         mesh = meshes[2];
         textureID = textures[texture_index];
         scale = glm::vec3(0.01f, 0.01f, 0.01f);
+        width = 1.25;
+        depth = 3.5;
         speed = 18.0f;
     }
 
@@ -110,7 +116,7 @@ void Entity::Update(float deltaTime, Entity* player, Entity* objects, int object
     velocity += acceleration * deltaTime;
     position += velocity * speed * deltaTime;
 
-    velocity_mph = (abs((position.z - previousPosition.z)) / 5280) / (deltaTime/3600);   // distance over time, miles / hour
+    velocity_mph = -(abs((position.z - previousPosition.z)) / 5280) / (deltaTime/3600);   // distance over time, miles / hour
 
     if (entityType == PLAYER || entityType == AI) {
         if (carType == FOCUS) {
@@ -210,9 +216,32 @@ void Entity::Update(float deltaTime, Entity* player, Entity* objects, int object
     else if (entityType == AI) {
         
         if (CheckCollision(player)) {
-            position = previousPosition;    // don't allow AI cars to overlap
+            position = previousPosition;    
+            player->crashed;    // if AI crashes with player, player crashed
         }
-        position.z += 0.01; // car AI will move autonomously
+
+        for (int i = 0; i < AIcount; i++)
+        {   
+            if (&ai[i] == this) continue;   // don't check collision with itself
+            if (CheckCollision(&ai[i])) {  // don't allow AI cars to overlap
+                position = previousPosition;
+                break;
+            }
+        }
+
+        if (velocity.z > 0) {   // tires rotate while moving
+            backLeftWheel->rotation.x += 5;
+            backRightWheel->rotation.x += 5;
+            frontLeftWheel->rotation.x += 5;
+            frontRightWheel->rotation.x += 5;
+        }
+        else if (velocity.z < 0) {
+            backLeftWheel->rotation.x -= 5;
+            backRightWheel->rotation.x -= 5;
+            frontLeftWheel->rotation.x -= 5;
+            frontRightWheel->rotation.x -= 5;
+        }
+
     }
 
     modelMatrix = glm::mat4(1.0f);

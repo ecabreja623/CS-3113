@@ -152,13 +152,12 @@ void ProcessInput() {
 
     const Uint8* keys = SDL_GetKeyboardState(NULL);
     if (currentScene != sceneList[0] && currentScene != sceneList[1] && currentScene != sceneList[4] && currentScene != sceneList[5]) {
+        
         if (keys[SDL_SCANCODE_A]) {
-            currentScene->state.player->rotation.z += 5;   // turn left when holding A
-
+            currentScene->state.player->rotation.z += 3;   // turn left when holding A
         }
         else if (keys[SDL_SCANCODE_D]) {
-            currentScene->state.player->rotation.z -= 5;   // turn right when holding D
-
+            currentScene->state.player->rotation.z -= 3;   // turn right when holding D
         }
 
         currentScene->state.player->velocity.x = 0;
@@ -169,7 +168,6 @@ void ProcessInput() {
             currentScene->state.player->velocity.x = sin(glm::radians(currentScene->state.player->rotation.z)) * -2.0f;
         }
         else if (keys[SDL_SCANCODE_S]) {    // S to reverse
-
             currentScene->state.player->velocity.z = cos(glm::radians(currentScene->state.player->rotation.z)) * 2.0f;
             currentScene->state.player->velocity.x = sin(glm::radians(currentScene->state.player->rotation.z)) * 2.0f;
         }
@@ -222,14 +220,14 @@ void Render() {
     program.SetProjectionMatrix(projectionMatrix);
     program.SetViewMatrix(viewMatrix);
 
-    if (currentScene != sceneList[0] || currentScene != sceneList[4] || currentScene != sceneList[5]) { // render 3D scenes only
+    if (currentScene != sceneList[0] || currentScene != sceneList[5]) { // render 3D scenes only
         currentScene->Render(&program);
     }
 
     program.SetProjectionMatrix(uiProjectionMatrix);
     program.SetViewMatrix(uiViewMatrix);
 
-    if (currentScene == sceneList[0] || currentScene == sceneList[4] || currentScene == sceneList[5]) { // render non 3D scenes only or 2D UI
+    if (currentScene == sceneList[0] || currentScene == sceneList[5]) { // render non 3D scenes only or 2D UI
         currentScene->Render(&program);
     }
     else if (currentScene == sceneList[2] || currentScene == sceneList[3]){
@@ -243,13 +241,21 @@ void Render() {
         
         Util::DrawIcon(&program, Util::LoadTexture("game_logo.png"), glm::vec3(5.5, 3.2, 0));   // logo on top right corner
 
-        Util::DrawText(&program, Util::LoadTexture("font2.png"), "Distance: " + std::to_string(distance), 0.5, -0.3f, glm::vec3(-6, 3.2, 0));   // remaining distance top left corner
+        Util::DrawText(&program, Util::LoadTexture("font2.png"), "Distance Left: " + std::to_string(distance), 0.5, -0.3f, glm::vec3(-6, 3.2, 0));   // remaining distance top left corner
 
         Util::DrawText(&program, Util::LoadTexture("font2.png"), std::to_string(int(-currentScene->state.player->velocity_mph)) + " mph", 0.5, -0.3f, glm::vec3(5, -3, 0)); // mph in bottom right corner
     }
-    else {  // scene [1] - Vehicle Selection
+    else if (currentScene == sceneList[1]) {  // scene [1] - Vehicle Selection
         Util::DrawText(&program, Util::LoadTexture("font2.png"), "SELECT A VEHICLE", 0.5f, 0.0f, glm::vec3(-3.5, 3, 0));
         Util::DrawText(&program, Util::LoadTexture("font2.png"), "Use arrow keys and ENTER to select", 0.25f, 0.0f, glm::vec3(-4, -3, 0));
+    }
+    else if (currentScene == sceneList[4]) {
+        Util::DrawIcon(&program, Util::LoadTexture("game_logo.png"), glm::vec3(0, 3.2, 0));
+
+        Util::DrawText(&program, Util::LoadTexture("font2.png"), "YOU WIN!", 1.0f, 0.0f, glm::vec3(-3.25, 2, 0));
+        Util::DrawText(&program, Util::LoadTexture("font2.png"), "YOU WERE CUTTING LIKE A KNIFE!", 0.35f, 0.0f, glm::vec3(-5, 0.75, 0));
+
+        Util::DrawText(&program, Util::LoadTexture("font2.png"), "PRESS ENTER TO PLAY AGAIN", 0.25f, 0.0f, glm::vec3(-2.85, 0, 0));
     }
 
     effects->Render();

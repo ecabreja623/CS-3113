@@ -270,18 +270,19 @@ void Level1::Update(float deltaTime) {
             state.AI[i].rotation.z = 180;
             state.AI[i].velocity.z = 1.0;
 
-            if (state.AI[i].position.x == 1.5) {    // cars drive back on the opposite lane
-                state.AI[i].position.x = -1.5;
-            }
-            else if (state.AI[i].position.x == 3.75) {
-                state.AI[i].position.x = -3.75;
-            }
-            else if (state.AI[i].position.x == 6.25) {
-                state.AI[i].position.x = -6.25;
-            }
-            else if (state.AI[i].position.x == 8.5) {
-                state.AI[i].position.x = -8.5;
-            }
+            state.AI[i].position.x = -state.AI[i].position.x;
+            //if (state.AI[i].position.x == 1.5) {    // cars drive back on the opposite lane
+            //    state.AI[i].position.x = -1.5;
+            //}
+            //else if (state.AI[i].position.x == 3.75) {
+            //    state.AI[i].position.x = -3.75;
+            //}
+            //else if (state.AI[i].position.x == 6.25) {
+            //    state.AI[i].position.x = -6.25;
+            //}
+            //else if (state.AI[i].position.x == 8.5) {
+            //    state.AI[i].position.x = -8.5;
+            //}
         }
 
         else if (state.AI[i].position.z >= 10) {
@@ -289,18 +290,20 @@ void Level1::Update(float deltaTime) {
             state.AI[i].rotation.z = 0;
             state.AI[i].velocity.z = -1.0;
 
-            if (state.AI[i].position.x == -1.5) {
-                state.AI[i].position.x = 1.5;
-            }
-            else if (state.AI[i].position.x == -3.75) {
-                state.AI[i].position.x = 3.75;
-            }
-            else if (state.AI[i].position.x == -6.25) {
-                state.AI[i].position.x = 6.25;
-            }
-            else if (state.AI[i].position.x == -8.5) {
-                state.AI[i].position.x = 8.5;
-            }
+            state.AI[i].position.x = -state.AI[i].position.x;
+
+            //if (state.AI[i].position.x == -1.5) {
+            //    state.AI[i].position.x = 1.5;
+            //}
+            //else if (state.AI[i].position.x == -3.75) {
+            //    state.AI[i].position.x = 3.75;
+            //}
+            //else if (state.AI[i].position.x == -6.25) {
+            //    state.AI[i].position.x = 6.25;
+            //}
+            //else if (state.AI[i].position.x == -8.5) {
+            //    state.AI[i].position.x = 8.5;
+            //}
         }
     }
 }
