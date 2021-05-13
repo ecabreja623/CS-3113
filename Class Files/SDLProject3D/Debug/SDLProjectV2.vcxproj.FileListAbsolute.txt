@@ -1,0 +1,2 @@
+C:\Users\plata\Documents\NYU\NYU CS\CS 3113\Class Files\SDLProjectV2\SDLProjectV2\Debug\SDLProjectV2.exe
+C:\Users\plata\Documents\NYU\NYU CS\CS 3113\Class Files\SDLProjectV2\SDLProjectV2\Debug\SDLProjectV2.pdb

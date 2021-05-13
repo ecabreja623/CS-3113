@@ -1,0 +1,2 @@
+C:/Users/plata/Documents/NYU/NYU CS/CS 3113/Class Files/CS3113-master/Examples/3D/SDL3DStarter/SDL3D/SDLProject/glm/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
+C:/Users/plata/Documents/NYU/NYU CS/CS 3113/Class Files/CS3113-master/Examples/3D/SDL3DStarter/SDL3D/SDLProject/glm/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir

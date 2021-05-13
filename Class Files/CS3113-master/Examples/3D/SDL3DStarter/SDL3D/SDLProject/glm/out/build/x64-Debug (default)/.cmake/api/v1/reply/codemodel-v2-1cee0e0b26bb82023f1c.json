@@ -1,0 +1,38 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"projectIndex" : 0,
+					"source" : "."
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Project"
+				}
+			],
+			"targets" : []
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/plata/Documents/NYU/NYU CS/CS 3113/Class Files/CS3113-master/Examples/3D/SDL3DStarter/SDL3D/SDLProject/glm/out/build/x64-Debug (default)",
+		"source" : "C:/Users/plata/Documents/NYU/NYU CS/CS 3113/Class Files/CS3113-master/Examples/3D/SDL3DStarter/SDL3D/SDLProject/glm"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 1
+	}
+}

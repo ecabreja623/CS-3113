@@ -272,7 +272,7 @@ void ProcessInput() {
     }
 }
 
-#define FIXED_TIMESTEP 0.0166666f   // 60 fps, 1 frame every 0.1666 sec
+#define FIXED_TIMESTEP 0.0166666f   // 60 fps, 1 frame every 0.01666 sec
 float lastTicks = 0;
 float accumulator = 0.0f;
 
